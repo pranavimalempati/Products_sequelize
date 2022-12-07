@@ -5,13 +5,20 @@ const Sequelize = require('sequelize');
 // creating the tables and inserting the records into db
 const add = async(req,res)=>{
     try {
-        const resp = await Products.create(req.body, {
-            include: [
-                {
-                    model: SubProducts,
-                },
-            ],
-        });
+        let resp;
+        if(req.body.SubProducts){
+            resp = await Products.create(req.body, {
+                include: [
+                    {
+                        model: SubProducts,
+                    },
+                ],
+            });
+        }else if(req.body.ProdtId){
+            resp = await SubProducts.create(req.body)
+        }else{
+            resp = await Products.create(req.body)
+    }
     res.status(200).json({
         status:"success",
         response:resp,
@@ -34,7 +41,7 @@ const getAll = async(req,res)=>{
           });
           res.status(200).json({
             status:"success",
-            response:updatePromises,
+            response:resp,
             message:"record fetched successfully"
           })
     } catch (error) {
@@ -54,13 +61,11 @@ const remove = async(req,res)=>{
             ProdtId: req.params.id
              },
           });
-          if(SubProducts.ProdtId == Products.id){
             await Products.destroy({
                 where:{
                     id : req.params.id
                 }
             });
-          }
           res.status(200).json({
             status:"success",
             response:resp,
